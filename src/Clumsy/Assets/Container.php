@@ -9,11 +9,8 @@ class Container {
 	protected $set = array(
 
 		'styles' => array(),
-
 		'header' => array(),
-
         'json'   => array(),
-
 		'footer' => array(),
 	);
 
@@ -34,7 +31,7 @@ class Container {
 			}, 25);
 		}
 	}
-	
+
 	public function register($set, $key, $path, $v = false, $reqs = false)
 	{
         if (!isset($this->assets[$key]))
@@ -144,19 +141,15 @@ class Container {
 		switch ($set)
         {
 			case 'styles' :
-
 				return 'Print styles';
 
 			case 'header' :
-
 				return 'Print scripts';
 
             case 'json' :
-
                 return 'Print footer scripts';
 
 			case 'footer' :
-
 				return 'Print footer scripts';
 		}
 	}

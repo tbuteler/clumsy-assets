@@ -16,6 +16,25 @@ class Asset {
     {
         return $this->container->register($set, $key, $path, $v, $reqs);
     }
+
+    public function registerBatch($assets)
+    {
+    	$default = array(
+    		'set'  => false,
+    		'key'  => false,
+    		'path' => false,
+    		'v'	   => '',
+    		'reqs' => false,
+    	);
+
+		foreach ($assets as $asset)
+		{
+			$asset = array_merge($default, (array)$asset);
+	        extract($asset);
+
+	        $this->register($set, $key, $path, $v, $reqs);
+		}
+    }
 	
 	public function enqueueNew($set, $key, $path, $v = '', $reqs = false, $priority = 25)
 	{
