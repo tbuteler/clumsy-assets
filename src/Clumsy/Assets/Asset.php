@@ -36,6 +36,11 @@ class Asset {
 		}
     }
 	
+    public function all()
+    {
+    	return $this->container->assets;
+    }
+
 	public function enqueueNew($set, $key, $path, $v = '', $reqs = false, $priority = 25)
 	{
         if ($this->register($set, $key, $path, $v, $reqs))
