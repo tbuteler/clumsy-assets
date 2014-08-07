@@ -133,7 +133,7 @@ class Container {
     {
         $json = json_encode($array);
 
-        return "<script type=\"text/javascript\">/* <![CDATA[ */ var 'handover' = $json; /* ]]> */</script>";
+        return "<script type=\"text/javascript\">/* <![CDATA[ */ var handover = $json; /* ]]> */</script>";
     }
 
 	protected function event($set)
