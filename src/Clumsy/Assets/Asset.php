@@ -17,7 +17,7 @@ class Asset {
         return $this->container->register($set, $key, $path, $v, $reqs);
     }
 
-    public function registerBatch($assets)
+    public function batchRegister($assets)
     {
     	$default = array(
     		'set'  => false,
