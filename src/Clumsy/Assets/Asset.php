@@ -27,7 +27,7 @@ class Asset {
     		'reqs' => false,
     	);
 
-		foreach ($assets as $asset)
+		foreach ($assets as $key => $asset)
 		{
 			$asset = array_merge($default, (array)$asset);
 	        extract($asset);
