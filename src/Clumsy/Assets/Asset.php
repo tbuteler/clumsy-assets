@@ -21,7 +21,6 @@ class Asset {
     {
     	$default = array(
     		'set'  => false,
-    		'key'  => false,
     		'path' => false,
     		'v'	   => '',
     		'reqs' => false,
@@ -31,6 +30,11 @@ class Asset {
 		{
 			$asset = array_merge($default, (array)$asset);
 	        extract($asset);
+
+	        if (!$set || !$key || !$path)
+	        {
+	        	continue;
+	        }
 
 	        $this->register($set, $key, $path, $v, $reqs);
 		}
