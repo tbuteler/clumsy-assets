@@ -32,7 +32,7 @@ class Container {
 		}
 	}
 
-	public function register($set, $key, $path, $v = false, $reqs = false)
+	public function register($set, $key, $path, $v = false, $req = false)
 	{
         if (!isset($this->assets[$key]))
         {
@@ -41,9 +41,9 @@ class Container {
     			'path'	=> $path,
             );
 
-            if ($reqs)
+            if ($req)
             {
-                $this->assets[$key]['req'] = (array)$reqs;
+                $this->assets[$key]['req'] = (array)$req;
             }
             
             if ($v)

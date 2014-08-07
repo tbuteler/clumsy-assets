@@ -12,9 +12,9 @@ class Asset {
 		$this->container->add($set, $asset, $priority);
 	}
 
-    public function register($set, $key, $path, $v = '', $reqs = false)
+    public function register($set, $key, $path, $v = '', $req = false)
     {
-        return $this->container->register($set, $key, $path, $v, $reqs);
+        return $this->container->register($set, $key, $path, $v, $req);
     }
 
     public function batchRegister($assets)
@@ -23,7 +23,7 @@ class Asset {
     		'set'  => false,
     		'path' => false,
     		'v'	   => '',
-    		'reqs' => false,
+    		'req'  => false,
     	);
 
 		foreach ($assets as $key => $asset)
@@ -36,7 +36,7 @@ class Asset {
 	        	continue;
 	        }
 
-	        $this->register($set, $key, $path, $v, $reqs);
+	        $this->register($set, $key, $path, $v, $req);
 		}
     }
 	
@@ -45,9 +45,9 @@ class Asset {
     	return $this->container->assets;
     }
 
-	public function enqueueNew($set, $key, $path, $v = '', $reqs = false, $priority = 25)
+	public function enqueueNew($set, $key, $path, $v = '', $req = false, $priority = 25)
 	{
-        if ($this->register($set, $key, $path, $v, $reqs))
+        if ($this->register($set, $key, $path, $v, $req))
         {
             $this->enqueue($key, $priority);
         }
