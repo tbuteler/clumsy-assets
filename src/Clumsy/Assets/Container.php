@@ -105,7 +105,7 @@ class Container {
 
                 if (!empty($this->set[$set]))
                 {
-                    return self::printJson(\Config::get('assets::config.json_variable'), $this->set[$set]);
+                    return self::printJson($this->set[$set]);
                 }
 
 			case 'styles' :
@@ -129,11 +129,11 @@ class Container {
         return implode(PHP_EOL, $content);
 	}
 
-    public static function printJson($id, $array)
+    public static function printJson($array)
     {
         $json = json_encode($array);
 
-        return "<script type=\"text/javascript\">/* <![CDATA[ */ var $id = $json; /* ]]> */</script>";
+        return "<script type=\"text/javascript\">/* <![CDATA[ */ var 'handover' = $json; /* ]]> */</script>";
     }
 
 	protected function event($set)

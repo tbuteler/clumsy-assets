@@ -23,16 +23,4 @@ return array(
      */
 
     'silent' => !Config::get('app.debug'),
-
-    /*
-     |--------------------------------------------------------------------------
-     | Global variable name for JSON data
-     |--------------------------------------------------------------------------
-     |
-     | All data passed via the json method is consolidated in one JSON object,
-     | which is assigned to a global Javascript variable.
-     |
-     */
-
-    'json_variable' => 'json',
 );
