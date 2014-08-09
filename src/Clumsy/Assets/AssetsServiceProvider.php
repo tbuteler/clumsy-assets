@@ -1,6 +1,8 @@
 <?php namespace Clumsy\Assets;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Event;
+use Clumsy\Assets\Asset;
 
 class AssetsServiceProvider extends ServiceProvider {
 
@@ -18,13 +20,11 @@ class AssetsServiceProvider extends ServiceProvider {
      */
     public function register()
     {
-        $app = $this->app;
-
         $this->package('clumsy/assets');
 
-        $app['config']->package('clumsy/assets', $this->guessPackagePath() . '/config');
+        $this->app['config']->package('clumsy/assets', $this->guessPackagePath() . '/config');
 
-        $app['asset'] = new \Clumsy\Assets\Asset;
+        $this->app['asset'] = new Asset;
     }
 
     /**
@@ -34,11 +34,9 @@ class AssetsServiceProvider extends ServiceProvider {
      */
     public function boot()
     {
-        $app = $this->app;
-
-        if(!$app->runningInConsole())
+        if(!$this->app->runningInConsole())
         {
-            $app->after(array($this, 'triggerEvents'));
+            $this->app->after(array($this, 'triggerEvents'));
         }
     }
 
@@ -47,8 +45,8 @@ class AssetsServiceProvider extends ServiceProvider {
         $content = $response->getContent();
 
         $header_content = array_flatten(array(
-            \Event::fire('Print styles'),
-            \Event::fire('Print scripts'),
+            Event::fire('Print styles'),
+            Event::fire('Print scripts'),
         ));
         $header_content = implode(PHP_EOL, array_filter($header_content));
 
@@ -59,7 +57,7 @@ class AssetsServiceProvider extends ServiceProvider {
             $content = substr($content, 0, $pos) . $header_content . substr($content, $pos);
         }
 
-        $footer_content = \Event::fire('Print footer scripts');
+        $footer_content = Event::fire('Print footer scripts');
         $footer_content = implode(PHP_EOL, array_filter($footer_content));
 
         $pos = strripos($content, '</body>');
