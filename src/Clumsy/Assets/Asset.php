@@ -112,11 +112,13 @@ class Asset {
 	
 	public function font($name, $weights = false)
 	{
+		$name = urlencode($name);
+		
 		if (!$weights || !is_array($weights))
         {
 			$weights = array(400);
 		}
-		$weights = implode(',', $weights);
+		$weights = implode(',', array_map('urlencode', $weights));
 
         $this->enqueueNew('styles', "font.$name", "//fonts.googleapis.com/css?family=$name:$weights", null, null, 50);
 	}
