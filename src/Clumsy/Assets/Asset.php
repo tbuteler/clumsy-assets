@@ -89,9 +89,16 @@ class Asset {
 		return \HTML::style($path);
 	}
 
-	public function json($id, $array)
+	public function json($id, $array, $unique = false)
 	{
-        $container = $this->container->addArray('json', array($id => $array));
+		if ($unique)
+		{
+			$this->container->setArray('json', array($id => $array));
+		}
+		else
+		{
+			$this->container->addArray('json', array($id => $array));
+		}
     }
 
 	public function unique($id, \Closure $closure)
