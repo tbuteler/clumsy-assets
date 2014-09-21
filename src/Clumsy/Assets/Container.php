@@ -96,9 +96,10 @@ class Container {
     {
         $array = array_dot($array);
         
-        $key = key($array);
-
-        array_set($this->set[$container], $key, $array[$key]);
+        foreach ($array as $key => $value)
+        {
+            array_set($this->set[$container], $key, $array[$key]);
+        }
     }
 	
     public function addArray($container, $array)

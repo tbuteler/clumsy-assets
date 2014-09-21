@@ -89,9 +89,9 @@ class Asset {
 		return \HTML::style($path);
 	}
 
-	public function json($id, $array, $unique = false)
+	public function json($id, $array, $replace = false)
 	{
-		if ($unique)
+		if ($replace)
 		{
 			$this->container->setArray('json', array($id => $array));
 		}
