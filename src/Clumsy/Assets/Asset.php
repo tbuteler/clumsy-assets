@@ -117,16 +117,37 @@ class Asset {
         return false;
 	}
 	
-	public function font($name, $weights = false)
+	public function font($fonts, $options = '')
 	{
-		$name = urlencode($name);
-		
-		if (!$weights || !is_array($weights))
-        {
-			$weights = array(400);
-		}
-		$weights = implode(',', array_map('urlencode', $weights));
+		$families = array();
 
-        $this->enqueueNew('styles', "font.$name", "//fonts.googleapis.com/css?family=$name:$weights", null, null, 50);
+		foreach ((array)$fonts as $font => $weights)
+		{
+			if (is_numeric($font))
+			{
+				$font = $weights;
+				$weights = array();
+			}
+
+			$font = urlencode($font);
+
+			if (!$weights || !is_array($weights))
+	        {
+				$weights = array(400);
+			}
+			
+			$weights = implode(',', array_map('urlencode', $weights));
+
+			$families[] = "{$font}:{$weights}";
+		}
+
+		$families = implode('|', $families);
+		
+		if ($options)
+		{
+			$options = '&'.http_build_query($options);
+		}
+
+        $this->enqueueNew('styles', sha1($families), "//fonts.googleapis.com/css?family={$families}{$options}", null, null, 50);
 	}
 }
