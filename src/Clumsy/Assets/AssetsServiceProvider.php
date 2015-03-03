@@ -44,6 +44,11 @@ class AssetsServiceProvider extends ServiceProvider {
     {
         $content = $response->getContent();
 
+        if (!$content)
+        {
+            return false;
+        }
+
         $header_content = array_flatten(array(
             Event::fire('Print styles'),
             Event::fire('Print scripts'),
