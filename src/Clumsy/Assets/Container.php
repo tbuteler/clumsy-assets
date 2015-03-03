@@ -91,6 +91,16 @@ class Container {
 
 		krsort($this->set[$container]);
 	}
+
+    public function setArray($container, $array)
+    {
+        $array = array_dot($array);
+        
+        foreach ($array as $key => $value)
+        {
+            array_set($this->set[$container], $key, $array[$key]);
+        }
+    }
 	
     public function addArray($container, $array)
     {
