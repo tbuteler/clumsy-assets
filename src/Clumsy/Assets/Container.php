@@ -1,44 +1,52 @@
 <?php namespace Clumsy\Assets;
 
+use Closure;
 use Event;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\HTML;
 
 class Container {
 
-    public $assets = array();
-	
-	protected $set = array(
+    public $inline;
 
-		'styles' => array(),
-		'header' => array(),
+    public $assets = array();
+    
+    protected $set = array(
+
+        'styles' => array(),
+        'header' => array(),
         'json'   => array(),
-		'footer' => array(),
-	);
+        'footer' => array(),
+    );
 
     public $unique = array();
-	
-	public function __construct()
-	{
-        $this->assets = \Config::get('assets::assets');
+    
+    public function __construct()
+    {
+        $this->inline = Config::get('assets::config.inline');
 
-		foreach (array_keys($this->set) as $set)
+        $this->assets = Config::get('assets::assets');
+
+        foreach (array_keys($this->set) as $set)
         {
-			$container = $this;
+            $container = $this;
 
-			Event::listen($this->event($set), function() use ($container, $set)
+            Event::listen($this->event($set), function() use ($container, $set)
             {
-				return $container->dump($set);
+                return $container->dump($set);
 
-			}, 25);
-		}
-	}
+            }, 25);
+        }
+    }
 
-	public function register($set, $key, $path, $v = false, $req = false)
-	{
+    public function register($set, $key, $path, $v = false, $req = false)
+    {
         if (!isset($this->assets[$key]))
         {
             $this->assets[$key] = array(
-    			'set'	=> $set,
-    			'path'	=> $path,
+                'set'   => $set,
+                'path'  => $path,
             );
 
             if ($req)
@@ -48,18 +56,18 @@ class Container {
             
             if ($v)
             {
-    			$this->assets[$key]['v'] = $v;
+                $this->assets[$key]['v'] = $v;
             }
 
             return true;
         }
         
         return false;
-	}
-	
-	public function add($container, $asset, $priority = 25)
-	{
-		$key = $asset['key'];
+    }
+    
+    public function add($container, $asset, $priority = 25)
+    {
+        $key = $asset['key'];
 
         foreach (array_keys($this->set[$container]) as $i => $p)
         {
@@ -78,19 +86,19 @@ class Container {
             }
         }
 
-		if (!isset($this->set[$container][$priority]))
+        if (!isset($this->set[$container][$priority]))
         {
             $this->set[$container][$priority] = array();
-		}
+        }
 
-		$path = $asset['path'];
+        $path = $asset['path'];
 
-		$suffix = isset($asset['v']) && $asset['v'] != '' ? '?v=' . (string)$asset['v'] : '';
+        $suffix = !$this->inline && isset($asset['v']) && $asset['v'] != '' ? '?v=' . (string)$asset['v'] : '';
 
-		$this->set[$container][$priority] = array_merge($this->set[$container][$priority], array($key => $path.$suffix));
+        $this->set[$container][$priority] = array_merge($this->set[$container][$priority], array($key => $path.$suffix));
 
-		krsort($this->set[$container]);
-	}
+        krsort($this->set[$container]);
+    }
 
     public function setArray($container, $array)
     {
@@ -101,15 +109,15 @@ class Container {
             array_set($this->set[$container], $key, $array[$key]);
         }
     }
-	
+    
     public function addArray($container, $array)
     {
         $this->set[$container] = array_merge_recursive($this->set[$container], $array);
     }
 
-	public function dump($set)
-	{
-		switch ($set)
+    public function dump($set)
+    {
+        switch ($set)
         {
             case 'json' :
 
@@ -118,26 +126,57 @@ class Container {
                     return self::printJson($this->set[$set]);
                 }
 
-			case 'styles' :
+            case 'styles' :
 
-				$type = 'style';
+                $type = 'style';
 
-				break;
+                break;
 
-			default :
+            default :
 
-				$type = 'script';
-		}
+                $type = 'script';
+        }
 
         $content = array();
 
-		foreach (array_flatten($this->set[$set]) as $path)
+        foreach (array_flatten($this->set[$set]) as $path)
         {
-            $content[] = \HTML::$type($path);
-		}
+            if ($this->inline && file_exists(public_path($path)))
+            {
+                $inline = File::get(public_path($path));
+
+                if ($replace = $this->embeddedAssetReplace($this->getPath($path)))
+                {
+                    $inline = preg_replace('/url\(\'?"?(?!(|\'|")http)/', $replace, $inline);
+                }
+
+                $content[] = $this->wrap($type, $inline);
+            }
+            else
+            {
+                $content[] = HTML::$type($path);
+            }
+        }
 
         return implode(PHP_EOL, $content);
-	}
+    }
+
+    public function embeddedAssetReplace($path)
+    {
+        $replace = Config::get('assets::config.replace-embedded-assets-on-styles');
+
+        if ($replace instanceof Closure)
+        {
+            return $replace($path);
+        }
+
+        if (!$replace)
+        {
+            return false;
+        }
+
+        return '$0'.url($path).'/';
+    }
 
     public static function printJson($array)
     {
@@ -146,38 +185,38 @@ class Container {
         return "<script type=\"text/javascript\">/* <![CDATA[ */ var handover = $json; /* ]]> */</script>";
     }
 
-	protected function event($set)
-	{
-		switch ($set)
+    protected function event($set)
+    {
+        switch ($set)
         {
-			case 'styles' :
-				return 'Print styles';
+            case 'styles' :
+                return 'Print styles';
 
-			case 'header' :
-				return 'Print scripts';
+            case 'header' :
+                return 'Print scripts';
 
             case 'json' :
                 return 'Print footer scripts';
 
-			case 'footer' :
-				return 'Print footer scripts';
-		}
-	}
-	
-	protected function clear()
-	{
-		foreach (array_keys($this->set) as $set)
+            case 'footer' :
+                return 'Print footer scripts';
+        }
+    }
+    
+    protected function clear()
+    {
+        foreach (array_keys($this->set) as $set)
         {
             $this->set = array();
-		}
-	}
-	
-	protected function flatten($internal = false)
-	{
+        }
+    }
+    
+    protected function flatten($internal = false)
+    {
         $flatten = array();
         foreach ((array)$this->set as $set => $asset_arr)
         {
-    	    $assets = array_flatten($asset_arr);
+            $assets = array_flatten($asset_arr);
 
             $flatten[$set] = !$internal ? $assets : array_filter($assets, function($asset){
 
@@ -186,10 +225,37 @@ class Container {
         }
 
         return $flatten;
-	}
+    }
+
+    public function getPath($path)
+    {
+        if (!preg_match('/^(\/\/|https?:\/\/)/', $path))
+        {
+            $path = explode('/', $path);
+            if (count($path) > 1)
+            {
+                array_pop($path);
+                $path = implode('/', $path);
+            }
+        }
+
+        return $path;
+    }
 
     public function getSet($key)
     {
         return isset($this->set[$key]) ? $this->set[$key] : false;
+    }
+
+    protected function wrap($type, $content)
+    {
+        switch ($type)
+        {
+            case 'style' :
+                return '<style type="text/css" media="all">'.$content.'</style>';
+
+            default :
+                return '<script type="text/javascript">'.$content.'</script>';
+        }
     }
 }
