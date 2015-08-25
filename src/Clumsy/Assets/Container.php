@@ -147,7 +147,7 @@ class Container {
 
                 if ($replace = $this->embeddedAssetReplace($this->getPath($path)))
                 {
-                    $inline = preg_replace('/url\(\'?"?(?!(|\'|")http)/', $replace, $inline);
+                    $inline = preg_replace('/url\(\'?"?(?!(|\'|")http)(?!(|\'|")data)/', $replace, $inline);
                 }
 
                 $content[] = $this->wrap($type, $inline);
