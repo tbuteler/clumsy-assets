@@ -1,12 +1,15 @@
-<?php namespace Clumsy\Assets;
+<?php
+namespace Clumsy\Assets;
 
-class Facade extends \Illuminate\Support\Facades\Facade {
-
+class Facade extends \Illuminate\Support\Facades\Facade
+{
     /**
      * Get the registered name of the component.
      *
      * @return string
      */
-    protected static function getFacadeAccessor() { return 'asset'; }
-
+    protected static function getFacadeAccessor()
+    {
+        return 'clumsy.assets';
+    }
 }

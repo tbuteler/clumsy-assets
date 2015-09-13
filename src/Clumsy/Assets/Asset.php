@@ -1,153 +1,144 @@
-<?php namespace Clumsy\Assets;
+<?php
+namespace Clumsy\Assets;
 
-class Asset {
+use Closure;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\HTML;
+use Clumsy\Assets\Support\Container;
+use Clumsy\Assets\Support\Exceptions\UnknownAssetException;
 
-    public function __construct()
+class Asset
+{
+    protected $container;
+
+    public function __construct(Application $app, Container $container)
     {
-        $this->container = new Container;
+        $this->app = $app;
+        $this->container = $container;
     }
 
-	protected function on($set, $asset, $priority)
-	{
-		$this->container->add($set, $asset, $priority);
-	}
-
-    public function register($set, $key, $path, $v = '', $req = false)
+    public function sets()
     {
-        return $this->container->register($set, $key, $path, $v, $req);
+        return $this->container->getSets();
+    }
+
+    public function all()
+    {
+        return $this->container->getAssets();
+    }
+
+    public function dump($set)
+    {
+        return $this->container->dump($set);
+    }
+
+    protected function on($set, $asset, $priority)
+    {
+        $this->container->add($set, $asset, $priority);
+    }
+
+    public function register($set, $key, array $attributes = array())
+    {
+        return $this->container->register($set, $key, $attributes);
     }
 
     public function batchRegister($assets)
     {
-    	$default = array(
-    		'set'  => false,
-    		'path' => false,
-    		'v'	   => '',
-    		'req'  => false,
-    	);
+        $default = array(
+            'set'  => false,
+            'path' => false,
+        );
 
-		foreach ($assets as $key => $asset)
-		{
-			$asset = array_merge($default, (array)$asset);
-	        extract($asset);
+        foreach ($assets as $key => $asset) {
+            $asset = array_merge($default, (array)$asset);
+            extract($asset);
 
-	        if (!$set || !$key || !$path)
-	        {
-	        	continue;
-	        }
+            if (!$set || !$key || !$path) {
+                continue;
+            }
 
-	        $this->register($set, $key, $path, $v, $req);
-		}
+            $this->register($set, $key, $asset);
+        }
     }
-	
-    public function all()
+
+    public function enqueueNew($set, $key, array $attributes = array(), $priority = 25)
     {
-    	return $this->container->assets;
-    }
-
-	public function enqueueNew($set, $key, $path, $v = '', $req = false, $priority = 25)
-	{
-        if ($this->register($set, $key, $path, $v, $req))
-        {
+        if ($this->register($set, $key, $attributes)) {
             $this->enqueue($key, $priority);
         }
 
         return false;
-	}
-
-	public function enqueue($asset, $priority = 25)
-	{
-		$assets = $this->container->assets;
-
-		if (!isset($assets[$asset]))
-        {
-			if (\Config::get('assets::config.silent'))
-            {
-                return false; // Fail silently, unless debug is on
-            }
-            
-            throw new \Exception("Unknown asset $asset.");            
-		}
-		
-		if (isset($assets[$asset]['req']))
-        {	
-			foreach((array)$assets[$asset]['req'] as $req)
-            {
-				$this->enqueue($req, $priority);
-			}
-		}
-
-		$path = $assets[$asset]['path'];
-
-		$v = isset($assets[$asset]['v']) ? $assets[$asset]['v'] : null;
-
-		$this->on($assets[$asset]['set'], array('key' => $asset, 'path' => $path, 'v' => $v), $priority);
-	}
-
-	public function style($path)
-	{
-		return \HTML::style($path);
-	}
-
-	public function json($id, $array, $replace = false)
-	{
-		if ($replace)
-		{
-			$this->container->setArray('json', array($id => $array));
-		}
-		else
-		{
-			$this->container->addArray('json', array($id => $array));
-		}
     }
 
-	public function unique($id, \Closure $closure)
-	{
+    public function enqueue($asset, $priority = 25)
+    {
+        $assets = $this->all();
+
+        if (!isset($assets[$asset])) {
+            if ($this->app['config']->get('clumsy/assets::config.silent')) {
+                return false; // Fail silently, unless debug is on
+            }
+
+            throw new UnknownAssetException();
+        }
+
+        if (isset($assets[$asset]['req'])) {
+            foreach ((array)$assets[$asset]['req'] as $requirement) {
+                $this->enqueue($requirement, $priority);
+            }
+        }
+
+        $this->on($assets[$asset]['set'], array_merge(array('key' => $asset), $assets[$asset]), $priority);
+    }
+
+    public function json($id, $array, $replace = false)
+    {
+        $this->updateArray('handover', $id, $array, $replace);
+    }
+
+    public function updateArray($namespace, $id, $array, $replace = false)
+    {
+        if ($replace) {
+            $this->container->setArray($namespace, array($id => $array));
+        } else {
+            $this->container->addArray($namespace, array($id => $array));
+        }
+    }
+
+    public function unique($id, Closure $closure)
+    {
         $container = $this->container;
-        
-        if (!in_array($id, $container->unique))
-        {
+
+        if (!in_array($id, $container->unique)) {
             $this->container->unique[] = $id;
 
             call_user_func($closure);
 
             return true;
         }
-        
+
         return false;
-	}
-	
-	public function font($fonts, $options = '')
-	{
-		$families = array();
+    }
 
-		foreach ((array)$fonts as $font => $weights)
-		{
-			if (is_numeric($font))
-			{
-				$font = $weights;
-				$weights = array();
-			}
+    public function font($fonts, $options = '')
+    {
+        $provider = $this->app['config']->get('clumsy/assets::config.font-provider');
 
-			$font = urlencode($font);
+        $this->enqueueNew('styles', sha1(print_r($fonts, true)), array(
+            'priority' => 50,
+            'type'     => "{$provider}-font",
+            'fonts'    => $fonts,
+            'options'  => $options,
+        ));
+    }
 
-			if (!$weights || !is_array($weights))
-	        {
-				$weights = array(400);
-			}
-			
-			$weights = implode(',', array_map('urlencode', $weights));
+    public function once($id, Closure $closure)
+    {
+        return $this->unique($id, $closure);
+    }
 
-			$families[] = "{$font}:{$weights}";
-		}
-
-		$families = implode('|', $families);
-		
-		if ($options)
-		{
-			$options = '&'.http_build_query($options);
-		}
-
-        $this->enqueueNew('styles', sha1($families), "//fonts.googleapis.com/css?family={$families}{$options}", null, null, 50);
-	}
+    public function __call($method, $parameters)
+    {
+        return call_user_func_array(array($this, 'updateArray'), array_flatten(func_get_args()));
+    }
 }

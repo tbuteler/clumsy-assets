@@ -1,11 +1,11 @@
-<?php namespace Clumsy\Assets;
+<?php
+namespace Clumsy\Assets;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
-use Clumsy\Assets\Asset;
 
-class AssetsServiceProvider extends ServiceProvider {
-
+class AssetsServiceProvider extends ServiceProvider
+{
     /**
      * Indicates if loading of the provider is deferred.
      *
@@ -20,11 +20,10 @@ class AssetsServiceProvider extends ServiceProvider {
      */
     public function register()
     {
-        $this->package('clumsy/assets');
+        $path = __DIR__.'/../..';
+        $this->package('clumsy/assets', 'clumsy/assets', $path);
 
-        $this->app['config']->package('clumsy/assets', $this->guessPackagePath() . '/config');
-
-        $this->app['asset'] = new Asset;
+        $this->app['clumsy.assets'] = $this->app->make('Clumsy\Assets\Asset');
     }
 
     /**
@@ -34,8 +33,7 @@ class AssetsServiceProvider extends ServiceProvider {
      */
     public function boot()
     {
-        if(!$this->app->runningInConsole())
-        {
+        if (!$this->app->runningInConsole()) {
             $this->app->after(array($this, 'triggerEvents'));
         }
     }
@@ -44,9 +42,14 @@ class AssetsServiceProvider extends ServiceProvider {
     {
         $content = $response->getContent();
 
-        if (!$content)
-        {
+        if (!$content) {
             return false;
+        }
+
+        foreach (array_keys($this->app['clumsy.assets']->sets()) as $set) {
+            Event::listen($this->getEvent($set), function () use ($set) {
+                return $this->app['clumsy.assets']->dump($set);
+            }, 25);
         }
 
         $header_content = array_flatten(array(
@@ -57,8 +60,7 @@ class AssetsServiceProvider extends ServiceProvider {
 
         $pos = strripos($content, '</head>');
 
-        if ($pos !== false)
-        {
+        if ($pos !== false) {
             $content = substr($content, 0, $pos) . $header_content . substr($content, $pos);
         }
 
@@ -67,22 +69,36 @@ class AssetsServiceProvider extends ServiceProvider {
 
         $pos = strripos($content, '</body>');
 
-        if ($pos !== false)
-        {
+        if ($pos !== false) {
             $content = substr($content, 0, $pos) . $footer_content . substr($content, $pos);
         }
 
         $response->setContent($content);
     }
 
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array();
-	}
+    protected function getEvent($set)
+    {
+        switch ($set) {
+            case 'styles':
+                return 'Print styles';
 
+            case 'header':
+                return 'Print scripts';
+
+            default:
+                return 'Print footer scripts';
+        }
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return array(
+            'clumsy.assets',
+        );
+    }
 }
