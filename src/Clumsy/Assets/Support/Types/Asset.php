@@ -123,6 +123,7 @@ class Asset
 
     public function __toString()
     {
-        return $this->inline ? $this->inline() : HTML::{$this->method}($this->pathWithVersion());
+        $method = $this->method;
+        return $this->inline ? $this->inline() : HTML::$method($this->pathWithVersion());
     }
 }

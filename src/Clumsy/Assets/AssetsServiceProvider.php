@@ -46,9 +46,11 @@ class AssetsServiceProvider extends ServiceProvider
             return false;
         }
 
-        foreach (array_keys($this->app['clumsy.assets']->sets()) as $set) {
-            Event::listen($this->getEvent($set), function () use ($set) {
-                return $this->app['clumsy.assets']->dump($set);
+        $assets = $this->app['clumsy.assets'];
+
+        foreach (array_keys($assets->sets()) as $set) {
+            Event::listen($this->getEvent($set), function () use ($assets, $set) {
+                return $assets->dump($set);
             }, 25);
         }
 
