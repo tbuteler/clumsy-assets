@@ -76,7 +76,8 @@ class Asset
 
         if (!isset($assets[$asset])) {
             if ($this->app['config']->get('clumsy/assets::config.silent')) {
-                return false; // Fail silently, unless debug is on
+                // Fail silently, unless debug is on
+                return false;
             }
 
             throw new UnknownAssetException();

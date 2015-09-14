@@ -15,12 +15,15 @@ class Asset
 
     protected $v = null;
 
-    protected $inline = false;
-
     public function __construct($attributes)
     {
         $replace = Config::get('clumsy/assets::config.replace-embedded-assets');
         $this->setReplaceEmbeddedAssets($replace);
+
+        if (!isset($attributes['inline'])) {
+            $inline = Config::get('clumsy/assets::config.inline');
+            $this->inline = $inline;
+        }
 
         foreach ($attributes as $key => $value) {
             $this->$key = $value;

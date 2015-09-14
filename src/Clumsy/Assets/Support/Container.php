@@ -44,14 +44,7 @@ class Container
     public function register($set, $key, array $attributes = array())
     {
         if (!isset($this->assets[$key])) {
-
-            $defaults = array(
-                'set'    => $set,
-                'inline' => $this->app['config']->get('clumsy/assets::config.inline'),
-            );
-
-            $this->assets[$key] = array_merge($defaults, $attributes);
-
+            $this->assets[$key] = array_merge(array('set' => $set), $attributes);
             return true;
         }
 
