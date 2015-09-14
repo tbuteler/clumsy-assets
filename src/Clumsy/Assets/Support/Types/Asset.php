@@ -15,6 +15,8 @@ class Asset
 
     protected $v = null;
 
+    protected $inline = false;
+
     public function __construct($attributes)
     {
         $replace = Config::get('clumsy/assets::config.replace-embedded-assets');
