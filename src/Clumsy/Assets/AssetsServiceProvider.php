@@ -54,6 +54,7 @@ class AssetsServiceProvider extends ServiceProvider
 
         $header_content = array_flatten(array(
             Event::fire('Print styles'),
+            Event::fire('Print objects'),
             Event::fire('Print scripts'),
         ));
         $header_content = implode(PHP_EOL, array_filter($header_content));
@@ -85,8 +86,11 @@ class AssetsServiceProvider extends ServiceProvider
             case 'header':
                 return 'Print scripts';
 
-            default:
+            case 'footer':
                 return 'Print footer scripts';
+
+            default:
+                return 'Print objects';
         }
     }
 
