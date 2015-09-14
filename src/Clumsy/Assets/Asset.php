@@ -110,8 +110,9 @@ class Asset
     {
         $container = $this->container;
 
-        if (!in_array($id, $container->unique)) {
-            $this->container->unique[] = $id;
+        if ($container->isUnique($id)) {
+
+            $this->container->addUnique($id);
 
             call_user_func($closure);
 
@@ -119,6 +120,11 @@ class Asset
         }
 
         return false;
+    }
+
+    public function once($id, Closure $closure)
+    {
+        return $this->unique($id, $closure);
     }
 
     public function font($fonts, $options = '')
@@ -131,11 +137,6 @@ class Asset
             'fonts'    => $fonts,
             'options'  => $options,
         ));
-    }
-
-    public function once($id, Closure $closure)
-    {
-        return $this->unique($id, $closure);
     }
 
     public function __call($method, $parameters)

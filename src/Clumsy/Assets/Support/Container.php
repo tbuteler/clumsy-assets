@@ -41,6 +41,16 @@ class Container
         return $this->assets;
     }
 
+    public function isUnique($id)
+    {
+        return !in_array($id, $this->unique);
+    }
+
+    public function addUnique($id)
+    {
+        $this->unique[] = $id;
+    }
+
     public function register($set, $key, array $attributes = array())
     {
         if (!isset($this->assets[$key])) {
