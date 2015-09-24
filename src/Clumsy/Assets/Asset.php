@@ -53,7 +53,7 @@ class Asset
             $asset = array_merge($default, (array)$asset);
             extract($asset);
 
-            if (!$set || !$key || !$path) {
+            if (!$set || !$key) {
                 continue;
             }
 
@@ -111,7 +111,6 @@ class Asset
         $container = $this->container;
 
         if ($container->isUnique($id)) {
-
             $this->container->addUnique($id);
 
             call_user_func($closure);
@@ -132,11 +131,18 @@ class Asset
         $provider = $this->app['config']->get('clumsy/assets::config.font-provider');
 
         $this->enqueueNew('styles', sha1(print_r($fonts, true)), array(
-            'priority' => 50,
             'type'     => "{$provider}-font",
             'fonts'    => $fonts,
             'options'  => $options,
-        ));
+        ), 50);
+    }
+
+    public function typekit($kit_id)
+    {
+        $this->enqueueNew('styles', 'typekit', array(
+            'type'     => 'typekit',
+            'kit_id'    => $kit_id,
+        ), 50);
     }
 
     public function __call($method, $parameters)
