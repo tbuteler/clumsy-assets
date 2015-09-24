@@ -4,7 +4,7 @@ namespace Clumsy\Assets\Support;
 use Event;
 use Illuminate\Foundation\Application;
 use Clumsy\Assets\Support\Types\Json;
-use Clumsy\Assets\Support\Exceptions\UnknonwAssetTypeException;
+use Clumsy\Assets\Support\Exceptions\UnknownAssetTypeException;
 
 class Container
 {
@@ -117,7 +117,7 @@ class Container
             foreach ($assets as $asset_attributes) {
                 $class = $this->getAssetClassName($asset_attributes['type']);
                 if (!class_exists($class)) {
-                    throw new UnknonwAssetTypeException;
+                    throw new UnknownAssetTypeException;
                 }
 
                 $content[] = new $class($asset_attributes);
