@@ -37,6 +37,11 @@ class Asset
         $this->container->add($set, $asset, $priority);
     }
 
+    protected function move($asset, $set)
+    {
+        $this->container->move($asset, $set);
+    }
+
     public function register($set, $key, array $attributes = array())
     {
         return $this->container->register($set, $key, $attributes);
@@ -85,6 +90,11 @@ class Asset
 
         if (isset($assets[$asset]['req'])) {
             foreach ((array)$assets[$asset]['req'] as $requirement) {
+                // If a 'header' asset has requirements, make sure they are enqueued
+                // in the header as well, regardless of original set
+                if ($assets[$asset]['set'] === 'header') {
+                    $this->move($requirement, $assets[$asset]['set']);
+                }
                 $this->enqueue($requirement, $priority);
             }
         }
@@ -131,17 +141,17 @@ class Asset
         $provider = $this->app['config']->get('clumsy/assets::config.font-provider');
 
         $this->enqueueNew('styles', sha1(print_r($fonts, true)), array(
-            'type'     => "{$provider}-font",
-            'fonts'    => $fonts,
-            'options'  => $options,
+            'type'    => "{$provider}-font",
+            'fonts'   => $fonts,
+            'options' => $options,
         ), 50);
     }
 
     public function typekit($kit_id)
     {
         $this->enqueueNew('styles', 'typekit', array(
-            'type'     => 'typekit',
-            'kit_id'    => $kit_id,
+            'type'   => 'typekit',
+            'kit_id' => $kit_id,
         ), 50);
     }
 

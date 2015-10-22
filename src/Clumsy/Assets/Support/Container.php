@@ -88,6 +88,31 @@ class Container
         krsort($this->sets[$set]);
     }
 
+    public function move($asset, $set, $clear = true)
+    {
+        if (isset($this->assets[$asset])) {
+
+            $current = $this->assets[$asset]['set'];
+
+            // Styles cannot be moved
+            if ($current === 'styles') {
+                return false;
+            }
+
+            if ($clear && $set !== $current && $this->getSet($current)) {
+                foreach (array_keys($this->sets[$current]) as $i => $p) {
+                    if (array_key_exists($asset, $this->sets[$current][$p])) {
+                        unset($this->sets[$current][$p][$asset]);
+                    }
+                }
+            }
+            $this->assets[$asset]['set'] = $set;
+            return true;
+        }
+
+        return false;
+    }
+
     public function setArray($set, $array)
     {
         $this->primeSet($set);
