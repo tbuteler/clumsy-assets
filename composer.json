@@ -2,7 +2,7 @@
     "name": "clumsy/assets",
     "description": "Laravel asset loader",
     "keywords": ["laravel", "assets", "javascript", "json", "css"],
-    "license": "proprietary",
+    "license": "MIT",
     "authors": [
         {
             "name": "Tomas Buteler",
