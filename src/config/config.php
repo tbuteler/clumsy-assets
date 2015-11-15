@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Config;
-
 /*
  |--------------------------------------------------------------------------
  | Asset loader settings
@@ -10,7 +8,7 @@ use Illuminate\Support\Facades\Config;
  |
  */
 
-return array(
+return [
 
     /*
      |--------------------------------------------------------------------------
@@ -22,7 +20,7 @@ return array(
      |
      */
 
-    'silent' => !Config::get('app.debug'),
+    'silent' => !config('app.debug'),
 
     /*
      |--------------------------------------------------------------------------
@@ -66,4 +64,4 @@ return array(
      */
 
     'font-provider' => 'google',
-);
+];

@@ -1,6 +1,6 @@
 <?php
 
-return array(
+return [
 
     /*
     |--------------------------------------------------------------------------
@@ -12,14 +12,14 @@ return array(
     */
 
     /*
-    'example-asset' => array(
+    'example-asset' => [
         'set'   => 'footer',		// styles | header | footer
         'path'  => 'path/to/asset', // Relative to public path
-        'req'   => array(
+        'req'   => [
             'dependency 1'
             'dependency 2'
-        ),
+        ],
         'v'     => '1.0',
-    ),
+    ],
     */
-);
+];

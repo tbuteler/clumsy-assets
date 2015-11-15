@@ -5,7 +5,6 @@ use Closure;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\HTML;
 
 class Asset
 {
@@ -17,11 +16,11 @@ class Asset
 
     public function __construct($attributes)
     {
-        $replace = Config::get('clumsy/assets::config.replace-embedded-assets');
+        $replace = config('clumsy/assets/config.replace-embedded-assets');
         $this->setReplaceEmbeddedAssets($replace);
 
         if (!isset($attributes['inline'])) {
-            $inline = Config::get('clumsy/assets::config.inline');
+            $inline = config('clumsy/assets/config.inline');
             $this->inline = $inline;
         }
 
@@ -32,10 +31,10 @@ class Asset
 
     public function getPath()
     {
-        $replace = array(
+        $replace = [
             '{{environment}}' => App::environment(),
             '{{locale}}'      => App::getLocale(),
-        );
+        ];
 
         return str_replace(array_keys($replace), array_values($replace), $this->path);
     }
@@ -121,9 +120,69 @@ class Asset
         return !$this->isExternal();
     }
 
+    /**
+     * Build an HTML attribute string from an array.
+     *
+     * @param  array  $attributes
+     * @return string
+     */
+    public function attributes($attributes)
+    {
+        $html = [];
+
+        foreach ((array)$attributes as $key => $value) {
+            $element = $this->attributeElement($key, $value);
+            if (!is_null($element)) {
+                $html[] = $element;
+            }
+        }
+
+        return count($html) > 0 ? ' '.implode(' ', $html) : '';
+    }
+
+    /**
+     * Build a single attribute element.
+     *
+     * @param  string  $key
+     * @param  string  $value
+     * @return string
+     */
+    protected function attributeElement($key, $value)
+    {
+        // For numeric keys we will assume that the key and the value are the same
+        // as this will convert HTML attributes such as "required" to a correct
+        // form like required="required" instead of using incorrect numerics.
+        if (is_numeric($key)) {
+            $key = $value;
+        }
+
+        if (!is_null($value)) {
+            return $key.'="'.e($value).'"';
+        }
+    }
+
+    public function printStyle($url)
+    {
+        $attributes = [
+            'media' => 'all',
+            'type'  => 'text/css',
+            'rel'   => 'stylesheet',
+            'href'  => url($url),
+        ];
+
+        return '<link'.$this->attributes($attributes).'>'.PHP_EOL;
+    }
+
+    public function printScript($url)
+    {
+        $attributes['src'] = url($url);
+
+        return '<script'.$this->attributes($attributes).'></script>'.PHP_EOL;
+    }
+
     public function __toString()
     {
-        $method = $this->method;
-        return $this->inline ? $this->inline() : HTML::$method($this->pathWithVersion());
+        $method = 'print'.studly_case($this->method);
+        return $this->inline ? $this->inline() : $this->$method($this->pathWithVersion());
     }
 }

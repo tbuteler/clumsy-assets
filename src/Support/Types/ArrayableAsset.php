@@ -1,14 +1,14 @@
 <?php
 namespace Clumsy\Assets\Support\Types;
 
-use Illuminate\Support\Contracts\JsonableInterface;
-use Illuminate\Support\Contracts\ArrayableInterface;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
 
-abstract class ArrayableAsset implements ArrayableInterface, JsonableInterface
+abstract class ArrayableAsset implements Arrayable, Jsonable
 {
     protected $key;
 
-    protected $contents = array();
+    protected $contents = [];
 
     public function __construct($key, $contents)
     {
@@ -31,7 +31,7 @@ abstract class ArrayableAsset implements ArrayableInterface, JsonableInterface
         return $this->contents;
     }
 
-    public function setContents(array $contents = array())
+    public function setContents(array $contents = [])
     {
         $this->contents = $contents;
     }

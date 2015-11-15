@@ -13,18 +13,18 @@ class GoogleFont extends Style
     {
         parent::__construct($attributes);
 
-        $this->families = array();
+        $this->families = [];
 
         foreach ((array)$this->fonts as $font => $weights) {
             if (is_numeric($font)) {
                 $font = $weights;
-                $weights = array();
+                $weights = [];
             }
 
             $font = urlencode($font);
 
             if (!$weights || !is_array($weights)) {
-                $weights = array(400);
+                $weights = [400];
             }
 
             $weights = implode(',', array_map('urlencode', $weights));

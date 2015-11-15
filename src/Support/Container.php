@@ -8,22 +8,22 @@ use Clumsy\Assets\Support\Exceptions\UnknownAssetTypeException;
 
 class Container
 {
-    protected $unique = array();
+    protected $unique = [];
 
-    protected $object_sets = array(
+    protected $object_sets = [
         'styles',
         'header',
         'footer',
-    );
+    ];
 
-    protected $sets = array();
+    protected $sets = [];
 
-    protected $assets = array();
+    protected $assets = [];
 
     public function __construct(Application $app)
     {
         $this->app = $app;
-        $this->assets = $this->app['config']->get('clumsy/assets::assets');
+        $this->assets = $this->app['config']->get('clumsy/assets');
     }
 
     public function getSets()
@@ -51,7 +51,7 @@ class Container
         $this->unique[] = $id;
     }
 
-    public function register($set, $key, array $attributes = array())
+    public function register($set, $key, array $attributes = [])
     {
         if (!isset($this->assets[$key])) {
             $this->assets[$key] = array_merge(array('set' => $set), $attributes);
@@ -80,7 +80,7 @@ class Container
         }
 
         if (!isset($this->sets[$set][$priority])) {
-            $this->sets[$set][$priority] = array();
+            $this->sets[$set][$priority] = [];
         }
 
         $this->sets[$set][$priority] = array_merge($this->sets[$set][$priority], array($key => $asset));
@@ -137,7 +137,7 @@ class Container
             return new Json($set, $this->sets[$set]);
         }
 
-        $content = array();
+        $content = [];
         foreach ($this->sets[$set] as $assets) {
             foreach ($assets as $asset_attributes) {
                 $class = $this->getAssetClassName($asset_attributes['type']);
@@ -155,7 +155,7 @@ class Container
     protected function primeSet($key)
     {
         if (!array_key_exists($key, $this->sets)) {
-            $this->sets[$key] = array();
+            $this->sets[$key] = [];
         }
     }
 
@@ -188,13 +188,13 @@ class Container
     protected function clear()
     {
         foreach (array_keys($this->sets) as $set) {
-            $this->sets = array();
+            $this->sets = [];
         }
     }
 
     protected function flatten($internal = false)
     {
-        $flatten = array();
+        $flatten = [];
         foreach ((array)$this->sets as $set => $asset_array) {
             $assets = array_flatten($asset_array);
 
