@@ -20,8 +20,8 @@ class AssetsServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__.'/config/assets.php', 'clumsy/assets');
-        $this->mergeConfigFrom(__DIR__.'/config/config.php', 'clumsy/assets/config');
+        $this->mergeConfigFrom(__DIR__.'/config/assets.php', 'clumsy.assets.app');
+        $this->mergeConfigFrom(__DIR__.'/config/config.php', 'clumsy.asset-loader');
 
         $this->app['clumsy.assets'] = $this->app->make('Clumsy\Assets\Asset');
     }
@@ -38,8 +38,8 @@ class AssetsServiceProvider extends ServiceProvider
         }
 
         $this->publishes([
-            __DIR__.'/config/assets.php' => config_path('assets.php'),
-            __DIR__.'/config/config.php' => config_path('vendor/clumsy/assets/config.php'),
+            __DIR__.'/config/assets.php' => config_path('clumsy/assets/app.php'),
+            __DIR__.'/config/config.php' => config_path('clumsy/asset-loader.php'),
         ], 'config');
     }
 

@@ -16,11 +16,11 @@ class Asset
 
     public function __construct($attributes)
     {
-        $replace = config('clumsy/assets/config.replace-embedded-assets');
+        $replace = config('clumsy.asset-loader.replace-embedded-assets');
         $this->setReplaceEmbeddedAssets($replace);
 
         if (!isset($attributes['inline'])) {
-            $inline = config('clumsy/assets/config.inline');
+            $inline = config('clumsy.asset-loader.inline');
             $this->inline = $inline;
         }
 

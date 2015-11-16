@@ -23,7 +23,7 @@ class Container
     public function __construct(Application $app)
     {
         $this->app = $app;
-        $this->assets = $this->app['config']->get('clumsy/assets');
+        $this->assets = $this->app['config']->get('clumsy.assets.app');
     }
 
     public function getSets()

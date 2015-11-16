@@ -79,7 +79,7 @@ class Asset
         $assets = $this->all();
 
         if (!isset($assets[$asset])) {
-            if ($this->app['config']->get('clumsy/assets/config.silent')) {
+            if ($this->app['config']->get('clumsy.asset-loader.silent')) {
                 // Fail silently, unless debug is on
                 return false;
             }
@@ -138,7 +138,7 @@ class Asset
 
     public function font($fonts, $options = '')
     {
-        $provider = $this->app['config']->get('clumsy/assets/config.font-provider');
+        $provider = $this->app['config']->get('clumsy.asset-loader.font-provider');
 
         $this->enqueueNew('styles', sha1(print_r($fonts, true)), array(
             'type'     => "{$provider}-font",
