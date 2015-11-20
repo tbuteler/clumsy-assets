@@ -1,4 +1,5 @@
 <?php
+
 namespace Clumsy\Assets;
 
 use Illuminate\Contracts\Http\Kernel;
@@ -50,8 +51,8 @@ class AssetsServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return array(
+        return [
             'clumsy.assets',
-        );
+        ];
     }
 }

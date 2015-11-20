@@ -1,4 +1,5 @@
 <?php
+
 namespace Clumsy\Assets;
 
 use Closure;
@@ -74,31 +75,34 @@ class Asset
         return false;
     }
 
-    public function enqueue($asset, $priority = 25)
+    public function enqueue($enqueue, $priority = 25)
     {
         $assets = $this->all();
 
-        if (!isset($assets[$asset])) {
-            if ($this->app['config']->get('clumsy.asset-loader.silent')) {
-                // Fail silently, unless debug is on
-                return false;
-            }
+        foreach ((array)$enqueue as $asset) {
 
-            throw new UnknownAssetException();
-        }
-
-        if (isset($assets[$asset]['req'])) {
-            foreach ((array)$assets[$asset]['req'] as $requirement) {
-               // If a 'header' asset has requirements, make sure they are enqueued
-                // in the header as well, regardless of original set
-                if ($assets[$asset]['set'] === 'header') {
-                    $this->move($requirement, $assets[$asset]['set']);
+            if (!isset($assets[$asset])) {
+                if ($this->app['config']->get('clumsy.asset-loader.silent')) {
+                    // Fail silently, unless debug is on
+                    return false;
                 }
-                $this->enqueue($requirement, $priority);
-            }
-        }
 
-        $this->on($assets[$asset]['set'], array_merge(array('key' => $asset), $assets[$asset]), $priority);
+                throw new UnknownAssetException();
+            }
+
+            if (isset($assets[$asset]['req'])) {
+                foreach ((array)$assets[$asset]['req'] as $requirement) {
+                   // If a 'header' asset has requirements, make sure they are enqueued
+                    // in the header as well, regardless of original set
+                    if ($assets[$asset]['set'] === 'header') {
+                        $this->move($requirement, $assets[$asset]['set']);
+                    }
+                    $this->enqueue($requirement, $priority);
+                }
+            }
+
+            $this->on($assets[$asset]['set'], array_merge(array('key' => $asset), $assets[$asset]), $priority);
+        }
     }
 
     public function json($id, $array, $replace = false)
@@ -120,9 +124,7 @@ class Asset
         $container = $this->container;
 
         if ($container->isUnique($id)) {
-
             $this->container->addUnique($id);
-
             call_user_func($closure);
 
             return true;

@@ -13,9 +13,10 @@ return [
 
     /*
     'example-asset' => [
-        'set'   => 'footer',		// styles | header | footer
-        'path'  => 'path/to/asset', // Relative to public path
-        'req'   => [
+        'set'    => 'footer',        // styles | header | footer
+        'path'   => 'path/to/asset', // Relative to public path
+        'elixir' => true,            // Use elixir versioning?
+        'req'    => [                // Array of dependencies
             'dependency 1'
             'dependency 2'
         ],

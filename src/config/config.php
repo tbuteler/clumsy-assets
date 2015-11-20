@@ -54,6 +54,23 @@ return [
 
     /*
      |--------------------------------------------------------------------------
+     | Elixir versioning default
+     |--------------------------------------------------------------------------
+     |
+     | Should the asset loader attempt to load the versioned path of the asset,
+     | with the hash created by Laravel's Elixir? This can safely be true for
+     | all assets, even if they don't have proper revisions -- the loader falls
+     | back to the "raw" path if no elixir version is available.
+     |
+     | This setting can be overridden by each individual asset's "elixir"
+     | property.
+     |
+     */
+
+    'elixir' => true,
+
+    /*
+     |--------------------------------------------------------------------------
      | Default web font provider
      |--------------------------------------------------------------------------
      |

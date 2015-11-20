@@ -1,4 +1,5 @@
 <?php
+
 namespace Clumsy\Assets\Support\Types;
 
 use Illuminate\Contracts\Support\Arrayable;

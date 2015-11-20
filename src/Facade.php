@@ -1,4 +1,5 @@
 <?php
+
 namespace Clumsy\Assets;
 
 class Facade extends \Illuminate\Support\Facades\Facade

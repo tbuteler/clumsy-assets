@@ -1,4 +1,5 @@
 <?php
+
 namespace Clumsy\Assets\Http\Middleware;
 
 use Closure;

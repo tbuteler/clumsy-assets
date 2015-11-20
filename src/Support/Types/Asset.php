@@ -1,9 +1,10 @@
 <?php
+
 namespace Clumsy\Assets\Support\Types;
 
 use Closure;
+use Exception;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 
 class Asset
@@ -24,6 +25,11 @@ class Asset
             $this->inline = $inline;
         }
 
+        if (!isset($attributes['elixir'])) {
+            $elixir = config('clumsy.asset-loader.elixir');
+            $this->elixir = $elixir;
+        }
+
         foreach ($attributes as $key => $value) {
             $this->$key = $value;
         }
@@ -32,8 +38,8 @@ class Asset
     public function getPath()
     {
         $replace = [
-            '{{environment}}' => App::environment(),
-            '{{locale}}'      => App::getLocale(),
+            '{{environment}}' => app()->environment(),
+            '{{locale}}'      => app()->getLocale(),
         ];
 
         return str_replace(array_keys($replace), array_values($replace), $this->path);
@@ -84,6 +90,14 @@ class Asset
     protected function pathWithVersion()
     {
         $path = $this->getPath();
+        if ($this->isLocal() && $this->elixir) {
+            try {
+                $path = elixir($path);
+            } catch (Exception $e) {
+                $path = $this->getPath();
+            }
+        }
+
         $suffix = !$this->inline && $this->v ? '?v=' . (string)$this->v : null;
         return "{$path}{$suffix}";
     }
