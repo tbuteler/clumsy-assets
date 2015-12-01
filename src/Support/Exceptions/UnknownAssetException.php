@@ -2,4 +2,7 @@
 
 namespace Clumsy\Assets\Support\Exceptions;
 
-class UnknownAssetException extends \RuntimeException {}
+class UnknownAssetException extends \RuntimeException
+{
+
+}

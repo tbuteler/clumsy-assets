@@ -2,8 +2,8 @@
 
 namespace Clumsy\Assets\Support;
 
-use Event;
 use Illuminate\Foundation\Application;
+use Clumsy\Assets\Support\Types\Asset;
 use Clumsy\Assets\Support\Types\Json;
 use Clumsy\Assets\Support\Exceptions\UnknownAssetTypeException;
 
@@ -199,7 +199,7 @@ class Container
         foreach ((array)$this->sets as $set => $asset_array) {
             $assets = array_flatten($asset_array);
 
-            $flatten[$set] = !$internal ? $assets : array_filter($assets, function ($asset) {
+            $flatten[$set] = !$internal ? $assets : array_filter($assets, function (Asset $asset) {
                 return $asset->isLocal();
             });
         }
