@@ -4,6 +4,7 @@ namespace Clumsy\Assets\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
 use Clumsy\Assets\Facade as Asset;
 
@@ -16,7 +17,7 @@ class PrintAssets
         return $this->triggerEvents($response);
     }
 
-    public function triggerEvents(Request $response)
+    public function triggerEvents(Response $response)
     {
         $content = $response->getContent();
 
