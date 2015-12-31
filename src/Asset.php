@@ -11,10 +11,17 @@ class Asset
 {
     protected $container;
 
+    protected $replacerDelimiterLeft = '{{';
+    protected $replacerDelimiterRight = '}}';
+    protected $replacers = [];
+
     public function __construct(Application $app, Container $container)
     {
         $this->app = $app;
         $this->container = $container;
+
+        $this->replacer('locale', [$this, 'localePathReplacer']);
+        $this->replacer('environment', [$this, 'environmentPathReplacer']);
     }
 
     public function sets()
@@ -155,6 +162,45 @@ class Asset
             'type'     => 'typekit',
             'kit_id'    => $kit_id,
         ), 50);
+    }
+
+    public function replacer($key, $function)
+    {
+        $this->replacers[$key] = $function;
+    }
+
+    public function getReplacers()
+    {
+        return $this->replacers;
+    }
+
+    public function processReplacements($string)
+    {
+        foreach ($this->replacers as $placeholder => $replacement) {
+            $placeholder = "{$this->replacerDelimiterLeft}{$placeholder}{$this->replacerDelimiterRight}";
+            if (str_contains($string, $placeholder)) {
+                $replacement = is_callable($replacement) ? call_user_func($replacement) : $replacement;
+                $string = str_replace($placeholder, $replacement, $string);
+            }
+        }
+
+        return $string;
+    }
+
+    public function setReplacerDelimiters($left, $right)
+    {
+        $this->replacerDelimiterLeft = $left;
+        $this->replacerDelimiterRight = $right;
+    }
+
+    public function localePathReplacer()
+    {
+        return $this->app->getLocale();
+    }
+
+    public function environmentPathReplacer()
+    {
+        return $this->app->environment();
     }
 
     public function __call($method, $parameters)

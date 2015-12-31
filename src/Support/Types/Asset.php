@@ -6,6 +6,7 @@ use Closure;
 use Exception;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
+use Clumsy\Assets\Facade as Loader;
 
 class Asset
 {
@@ -33,16 +34,18 @@ class Asset
         foreach ($attributes as $key => $value) {
             $this->$key = $value;
         }
+
+        if (is_array($this->path)) {
+            // If no 'default' key is set, use first path as default
+            $default = array_get($this->path, 'default', head($this->path));
+            // Fetch path according to current environment, with default as fallback
+            $this->path = array_get($this->path, app()->environment(), $default);
+        }
     }
 
     public function getPath()
     {
-        $replace = [
-            '{{environment}}' => app()->environment(),
-            '{{locale}}'      => app()->getLocale(),
-        ];
-
-        return str_replace(array_keys($replace), array_values($replace), $this->path);
+        return Loader::processReplacements($this->path);
     }
 
     public function setPath($path)
