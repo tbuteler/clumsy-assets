@@ -55,7 +55,7 @@ class Container
     public function register($set, $key, array $attributes = [])
     {
         if (!isset($this->assets[$key])) {
-            $this->assets[$key] = array_merge(array('set' => $set), $attributes);
+            $this->assets[$key] = array_merge(['set' => $set], $attributes);
             return true;
         }
 
@@ -84,7 +84,7 @@ class Container
             $this->sets[$set][$priority] = [];
         }
 
-        $this->sets[$set][$priority] = array_merge($this->sets[$set][$priority], array($key => $asset));
+        $this->sets[$set][$priority] = array_merge($this->sets[$set][$priority], [$key => $asset]);
 
         krsort($this->sets[$set]);
     }
@@ -143,7 +143,8 @@ class Container
             foreach ($assets as $asset_attributes) {
                 $class = $this->getAssetClassName($asset_attributes['type']);
                 if (!class_exists($class)) {
-                    throw new UnknownAssetTypeException;
+                    dd($asset_attributes['type']);
+                    throw new UnknownAssetTypeException('Unknown type "'.$asset_attributes['type'].'" for asset "'.$asset_attributes['key'].'"');
                 }
 
                 $content[] = new $class($asset_attributes);

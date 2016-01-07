@@ -56,10 +56,10 @@ class Asset
 
     public function batchRegister($assets)
     {
-        $default = array(
+        $default = [
             'set'  => false,
             'path' => false,
-        );
+        ];
 
         foreach ($assets as $key => $asset) {
             $asset = array_merge($default, (array)$asset);
@@ -108,7 +108,7 @@ class Asset
                 }
             }
 
-            $this->on($assets[$asset]['set'], array_merge(array('key' => $asset), $assets[$asset]), $priority);
+            $this->on($assets[$asset]['set'], array_merge(['key' => $asset], $assets[$asset]), $priority);
         }
     }
 
@@ -120,9 +120,9 @@ class Asset
     public function updateArray($namespace, $id, $array, $replace = false)
     {
         if ($replace) {
-            $this->container->setArray($namespace, array($id => $array));
+            $this->container->setArray($namespace, [$id => $array]);
         } else {
-            $this->container->addArray($namespace, array($id => $array));
+            $this->container->addArray($namespace, [$id => $array]);
         }
     }
 
@@ -149,19 +149,19 @@ class Asset
     {
         $provider = $this->app['config']->get('clumsy.asset-loader.font-provider');
 
-        $this->enqueueNew('styles', sha1(print_r($fonts, true)), array(
+        $this->enqueueNew('styles', sha1(print_r($fonts, true)), [
             'type'     => "{$provider}-font",
             'fonts'    => $fonts,
             'options'  => $options,
-        ), 50);
+        ], 50);
     }
 
-    public function typekit($kit_id)
+    public function typekit($kitId)
     {
-        $this->enqueueNew('styles', 'typekit', array(
-            'type'     => 'typekit',
-            'kit_id'    => $kit_id,
-        ), 50);
+        $this->enqueueNew('styles', 'typekit', [
+            'type'   => 'typekit',
+            'kit_id' => $kitId,
+        ], 50);
     }
 
     public function replacer($key, $function)
@@ -205,6 +205,6 @@ class Asset
 
     public function __call($method, $parameters)
     {
-        return call_user_func_array(array($this, 'updateArray'), array_flatten(func_get_args()));
+        return call_user_func_array([$this, 'updateArray'], array_flatten(func_get_args()));
     }
 }
