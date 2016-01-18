@@ -120,10 +120,10 @@ class Asset
     public function updateArray($namespace, $id, $array, $replace = false)
     {
         if ($replace) {
-            $this->container->setArray($namespace, [$id => $array]);
-        } else {
-            $this->container->addArray($namespace, [$id => $array]);
+            return $this->container->setArray("{$namespace}.{$id}", $array);
         }
+
+        return $this->container->addArray("{$namespace}.{$id}", $array);
     }
 
     public function unique($id, Closure $closure)

@@ -64,13 +64,11 @@ class Container
 
     public function add($set, $asset, $priority = 25)
     {
-        $this->primeSet($set);
-
         $asset['type'] = isset($asset['type']) ? $asset['type'] : $this->getDefaultAssetType($set);
         $key = $asset['key'];
 
-        foreach (array_keys($this->sets[$set]) as $i => $p) {
-            if (array_key_exists($key, $this->sets[$set][$p])) {
+        foreach (array_keys(array_get($this->sets, $set, [])) as $i => $p) {
+            if (array_key_exists($key, array_get($this->sets, "{$set}.{$p}"))) {
                 // If asset is already in queue, either upgrade priority or ignore enqueue
                 if ($priority > $p) {
                     unset($this->sets[$set][$p][$key]);
@@ -80,11 +78,11 @@ class Container
             }
         }
 
-        if (!isset($this->sets[$set][$priority])) {
-            $this->sets[$set][$priority] = [];
-        }
-
-        $this->sets[$set][$priority] = array_merge($this->sets[$set][$priority], [$key => $asset]);
+        array_set(
+            $this->sets,
+            "{$set}.{$priority}",
+            array_merge(array_get($this->sets, "{$set}.{$priority}", []), [$key => $asset])
+        );
 
         krsort($this->sets[$set]);
     }
@@ -116,20 +114,15 @@ class Container
 
     public function setArray($set, $array)
     {
-        $this->primeSet($set);
-
-        $array = array_dot($array);
-
-        foreach ($array as $key => $value) {
-            array_set($this->sets[$set], $key, $array[$key]);
-        }
+        array_set($this->sets, $set, $array);
     }
 
     public function addArray($set, $array)
     {
-        $this->primeSet($set);
-
-        $this->sets[$set] = array_merge_recursive($this->sets[$set], $array);
+        $array = array_dot($array);
+        foreach ($array as $key => $value) {
+            array_set($this->sets, "{$set}.{$key}", $value);
+        }
     }
 
     public function dump($set)
@@ -152,13 +145,6 @@ class Container
         }
 
         return implode(PHP_EOL, $content);
-    }
-
-    protected function primeSet($key)
-    {
-        if (!array_key_exists($key, $this->sets)) {
-            $this->sets[$key] = [];
-        }
     }
 
     protected function arrayableSets()
