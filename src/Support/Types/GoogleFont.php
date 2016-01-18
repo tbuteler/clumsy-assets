@@ -36,7 +36,7 @@ class GoogleFont extends Style
 
     public function getPath()
     {
-        $this->families = implode('|', $this->families);
+        $this->families = implode('|', (array)$this->families);
 
         if ($this->options) {
             $this->options = '&'.http_build_query($this->options);

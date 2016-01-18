@@ -73,22 +73,13 @@ class Asset
         }
     }
 
-    public function enqueueNew($set, $key, array $attributes = [], $priority = 25)
+    public function load($assets, $priority = 25)
     {
-        if ($this->register($set, $key, $attributes)) {
-            $this->enqueue($key, $priority);
-        }
+        $registered = $this->all();
 
-        return false;
-    }
+        foreach ((array)$assets as $asset) {
 
-    public function enqueue($enqueue, $priority = 25)
-    {
-        $assets = $this->all();
-
-        foreach ((array)$enqueue as $asset) {
-
-            if (!isset($assets[$asset])) {
+            if (!isset($registered[$asset])) {
                 if ($this->app['config']->get('clumsy.asset-loader.silent')) {
                     // Fail silently, unless debug is on
                     return false;
@@ -97,19 +88,28 @@ class Asset
                 throw new UnknownAssetException();
             }
 
-            if (isset($assets[$asset]['req'])) {
-                foreach ((array)$assets[$asset]['req'] as $requirement) {
-                   // If a 'header' asset has requirements, make sure they are enqueued
+            if (isset($registered[$asset]['req'])) {
+                foreach ((array)$registered[$asset]['req'] as $requirement) {
+                    // If a 'header' asset has requirements, make sure they are loaded
                     // in the header as well, regardless of original set
-                    if ($assets[$asset]['set'] === 'header') {
-                        $this->move($requirement, $assets[$asset]['set']);
+                    if ($registered[$asset]['set'] === 'header') {
+                        $this->move($requirement, $registered[$asset]['set']);
                     }
-                    $this->enqueue($requirement, $priority);
+                    $this->load($requirement, $priority);
                 }
             }
 
-            $this->on($assets[$asset]['set'], array_merge(['key' => $asset], $assets[$asset]), $priority);
+            $this->on($registered[$asset]['set'], array_merge(['key' => $asset], $registered[$asset]), $priority);
         }
+    }
+
+    public function loadNew($set, $key, array $attributes = [], $priority = 25)
+    {
+        if ($this->register($set, $key, $attributes)) {
+            $this->load($key, $priority);
+        }
+
+        return false;
     }
 
     public function json($id, $array, $replace = false)
@@ -140,17 +140,21 @@ class Asset
         return false;
     }
 
-    public function once($id, Closure $closure)
-    {
-        return $this->unique($id, $closure);
-    }
-
-    public function font($fonts, $options = '')
+    public function fonts($fonts, $options = '')
     {
         $provider = $this->app['config']->get('clumsy.asset-loader.font-provider');
+        $method = "{$provider}Fonts";
+        if (method_exists($this, $method)) {
+            return $this->$method($fonts, $options);
+        }
 
-        $this->enqueueNew('styles', sha1(print_r($fonts, true)), [
-            'type'     => "{$provider}-font",
+        return false;
+    }
+
+    public function googleFonts($fonts, $options = '')
+    {
+        $this->loadNew('styles', sha1(print_r($fonts, true)), [
+            'type'     => 'google-font',
             'fonts'    => $fonts,
             'options'  => $options,
         ], 50);
@@ -158,7 +162,7 @@ class Asset
 
     public function typekit($kitId)
     {
-        $this->enqueueNew('styles', 'typekit', [
+        $this->loadNew('styles', "typekit-{$kitId}", [
             'type'   => 'typekit',
             'kit_id' => $kitId,
         ], 50);
@@ -206,5 +210,34 @@ class Asset
     public function __call($method, $parameters)
     {
         return call_user_func_array([$this, 'updateArray'], array_flatten(func_get_args()));
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Deprecated aliases
+    |--------------------------------------------------------------------------
+    |
+    | To be removed on 1.0
+    |
+    */
+
+    public function enqueue($assets, $priority = 25)
+    {
+        return $this->load($assets, $priority);
+    }
+
+    public function enqueueNew($set, $key, array $attributes = [], $priority = 25)
+    {
+        return $this->loadNew($set, $key, $attributes, $priority);
+    }
+
+    public function once($id, Closure $closure)
+    {
+        return $this->unique($id, $closure);
+    }
+
+    public function font($fonts, $options = '')
+    {
+        return $this->fonts($fonts, $options);
     }
 }
