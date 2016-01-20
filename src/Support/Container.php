@@ -9,8 +9,6 @@ use Clumsy\Assets\Support\Exceptions\UnknownAssetTypeException;
 
 class Container
 {
-    protected $unique = [];
-
     protected $object_sets = [
         'styles',
         'header',
@@ -20,6 +18,8 @@ class Container
     protected $sets = [];
 
     protected $assets = [];
+
+    protected $unique = [];
 
     public function __construct(Application $app)
     {
@@ -34,22 +34,12 @@ class Container
 
     public function getSet($key)
     {
-        return isset($this->sets[$key]) ? $this->sets[$key] : false;
+        return array_get($this->sets, $key, false);
     }
 
     public function getAssets()
     {
         return $this->assets;
-    }
-
-    public function isUnique($id)
-    {
-        return !in_array($id, $this->unique);
-    }
-
-    public function addUnique($id)
-    {
-        $this->unique[] = $id;
     }
 
     public function register($set, $key, array $attributes = [])
@@ -112,19 +102,6 @@ class Container
         return false;
     }
 
-    public function setArray($set, $array)
-    {
-        array_set($this->sets, $set, $array);
-    }
-
-    public function addArray($set, $array)
-    {
-        $array = array_dot((array)$array);
-        foreach ($array as $key => $value) {
-            array_set($this->sets, "{$set}.{$key}", $value);
-        }
-    }
-
     public function dump($set)
     {
         if ($this->isArrayable($set)) {
@@ -145,6 +122,29 @@ class Container
         }
 
         return implode(PHP_EOL, $content);
+    }
+
+    public function isUnique($id)
+    {
+        return !in_array($id, $this->unique);
+    }
+
+    public function addUnique($id)
+    {
+        $this->unique[] = $id;
+    }
+
+    public function setArray($set, $array)
+    {
+        array_set($this->sets, $set, $array);
+    }
+
+    public function addArray($set, array $array)
+    {
+        $array = array_dot($array);
+        foreach ($array as $key => $value) {
+            array_set($this->sets, "{$set}.{$key}", $value);
+        }
     }
 
     protected function arrayableSets()
@@ -178,19 +178,5 @@ class Container
         foreach (array_keys($this->sets) as $set) {
             $this->sets = [];
         }
-    }
-
-    protected function flatten($internal = false)
-    {
-        $flatten = [];
-        foreach ((array)$this->sets as $set => $asset_array) {
-            $assets = array_flatten($asset_array);
-
-            $flatten[$set] = !$internal ? $assets : array_filter($assets, function (Asset $asset) {
-                return $asset->isLocal();
-            });
-        }
-
-        return $flatten;
     }
 }

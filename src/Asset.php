@@ -112,34 +112,6 @@ class Asset
         return false;
     }
 
-    public function json($id, $array, $replace = false)
-    {
-        $this->updateArray('handover', $id, $array, $replace);
-    }
-
-    public function updateArray($namespace, $id, $array, $replace = false)
-    {
-        if ($replace) {
-            return $this->container->setArray("{$namespace}.{$id}", $array);
-        }
-
-        return $this->container->addArray("{$namespace}.{$id}", $array);
-    }
-
-    public function unique($id, Closure $closure)
-    {
-        $container = $this->container;
-
-        if ($container->isUnique($id)) {
-            $this->container->addUnique($id);
-            call_user_func($closure);
-
-            return true;
-        }
-
-        return false;
-    }
-
     public function fonts($fonts, $options = '')
     {
         $provider = $this->app['config']->get('clumsy.asset-loader.font-provider');
@@ -168,9 +140,41 @@ class Asset
         ], 50);
     }
 
+    public function unique($id, Closure $closure)
+    {
+        if ($this->container->isUnique($id)) {
+            $this->container->addUnique($id);
+            call_user_func($closure);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function json($id, $value, $replace = false)
+    {
+        $this->updateArray('handover', $id, $value, $replace);
+    }
+
+    protected function updateArray($namespace, $id, $value, $replace = false)
+    {
+        if ($replace || !is_array($value) || empty($value)) {
+            return $this->container->setArray("{$namespace}.{$id}", $value);
+        }
+
+        return $this->container->addArray("{$namespace}.{$id}", $value);
+    }
+
     public function replacer($key, $function)
     {
         $this->replacers[$key] = $function;
+    }
+
+    public function setReplacerDelimiters($left, $right)
+    {
+        $this->replacerDelimiterLeft = $left;
+        $this->replacerDelimiterRight = $right;
     }
 
     public function getReplacers()
@@ -189,12 +193,6 @@ class Asset
         }
 
         return $string;
-    }
-
-    public function setReplacerDelimiters($left, $right)
-    {
-        $this->replacerDelimiterLeft = $left;
-        $this->replacerDelimiterRight = $right;
     }
 
     public function localePathReplacer()
