@@ -119,7 +119,7 @@ class Container
 
     public function addArray($set, $array)
     {
-        $array = array_dot($array);
+        $array = array_dot((array)$array);
         foreach ($array as $key => $value) {
             array_set($this->sets, "{$set}.{$key}", $value);
         }
