@@ -3,7 +3,6 @@
 namespace Clumsy\Assets\Support;
 
 use Illuminate\Foundation\Application;
-use Clumsy\Assets\Support\Types\Asset;
 use Clumsy\Assets\Support\Types\Json;
 use Clumsy\Assets\Support\Exceptions\UnknownAssetTypeException;
 
