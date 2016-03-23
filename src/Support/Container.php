@@ -18,6 +18,8 @@ class Container
 
     protected $assets = [];
 
+    protected $content = [];
+
     protected $unique = [];
 
     public function __construct(Application $app)
@@ -41,6 +43,19 @@ class Container
         return $this->assets;
     }
 
+    public function assetAsObject($attributes)
+    {
+        $type = isset($attributes['type']) ? $attributes['type'] : $this->getDefaultAssetType($attributes['set']);
+
+        $class = $this->getAssetClassName($type);
+
+        if (!class_exists($class)) {
+            throw new UnknownAssetTypeException('Unknown type "'.$type.'" for asset "'.$attributes['key'].'"');
+        }
+
+        return new $class($attributes);
+    }
+
     public function register($set, $key, array $attributes = [])
     {
         if (!isset($this->assets[$key])) {
@@ -53,7 +68,6 @@ class Container
 
     public function add($set, $asset, $priority = 25)
     {
-        $asset['type'] = isset($asset['type']) ? $asset['type'] : $this->getDefaultAssetType($set);
         $key = $asset['key'];
 
         foreach (array_keys(array_get($this->sets, $set, [])) as $i => $p) {
@@ -107,20 +121,13 @@ class Container
             return new Json($set, $this->sets[$set]);
         }
 
-        $content = [];
         foreach ($this->sets[$set] as $assets) {
-            foreach ($assets as $asset_attributes) {
-                $class = $this->getAssetClassName($asset_attributes['type']);
-                if (!class_exists($class)) {
-                    dd($asset_attributes['type']);
-                    throw new UnknownAssetTypeException('Unknown type "'.$asset_attributes['type'].'" for asset "'.$asset_attributes['key'].'"');
-                }
-
-                $content[] = new $class($asset_attributes);
+            foreach ($assets as $assetAttributes) {
+                $this->content[] = $this->assetAsObject($assetAttributes);
             }
         }
 
-        return implode(PHP_EOL, $content);
+        return implode(PHP_EOL, $this->content);
     }
 
     public function isUnique($id)

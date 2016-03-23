@@ -24,9 +24,30 @@ class Asset
         $this->replacer('environment', [$this, 'environmentPathReplacer']);
     }
 
+    protected function unknownAsset($assetName)
+    {
+        if ($this->app['config']->get('clumsy.asset-loader.silent')) {
+            // Fail silently, unless debug is on
+            return null;
+        }
+
+        throw new UnknownAssetException("Unknown asset \"$assetName\"");
+    }
+
     public function sets()
     {
         return $this->container->getSets();
+    }
+
+    public function get($asset, $override = [])
+    {
+        $attributes = array_get($this->container->getAssets(), $asset);
+
+        if (is_null($attributes)) {
+            return $this->unknownAsset($asset);
+        }
+
+        return $this->container->assetAsObject(array_merge($attributes, (array)$override));
     }
 
     public function all()
@@ -80,12 +101,7 @@ class Asset
         foreach ((array)$assets as $asset) {
 
             if (!isset($registered[$asset])) {
-                if ($this->app['config']->get('clumsy.asset-loader.silent')) {
-                    // Fail silently, unless debug is on
-                    return false;
-                }
-
-                throw new UnknownAssetException();
+                return $this->unknownAsset($asset);
             }
 
             if (isset($registered[$asset]['req'])) {
@@ -154,7 +170,7 @@ class Asset
 
     public function json($id, $value, $replace = false)
     {
-        $this->updateArray('handover', $id, $value, $replace);
+        $this->updateArray($this->app['config']->get('clumsy.asset-loader.json-variable'), $id, $value, $replace);
     }
 
     protected function updateArray($namespace, $id, $value, $replace = false)
@@ -203,11 +219,6 @@ class Asset
     public function environmentPathReplacer()
     {
         return $this->app->environment();
-    }
-
-    public function __call($method, $parameters)
-    {
-        return call_user_func_array([$this, 'updateArray'], array_flatten(func_get_args()));
     }
 
     /*
