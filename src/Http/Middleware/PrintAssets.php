@@ -29,26 +29,26 @@ class PrintAssets
             }, 25);
         }
 
-        $header_content = array_flatten([
+        $headerContent = array_flatten([
             event('Print styles'),
             event('Print objects'),
             event('Print scripts'),
         ]);
-        $header_content = implode(PHP_EOL, array_filter($header_content));
+        $headerContent = implode(PHP_EOL, array_filter($headerContent));
 
         $pos = strripos($content, '</head>');
 
         if ($pos !== false) {
-            $content = substr($content, 0, $pos) . $header_content . substr($content, $pos);
+            $content = substr($content, 0, $pos) . $headerContent . substr($content, $pos);
         }
 
-        $footer_content = event('Print footer scripts');
-        $footer_content = implode(PHP_EOL, array_filter($footer_content));
+        $footerContent = event('Print footer scripts');
+        $footerContent = implode(PHP_EOL, array_filter($footerContent));
 
         $pos = strripos($content, '</body>');
 
         if ($pos !== false) {
-            $content = substr($content, 0, $pos) . $footer_content . substr($content, $pos);
+            $content = substr($content, 0, $pos) . $footerContent . substr($content, $pos);
         }
 
         $response->setContent($content);

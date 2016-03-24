@@ -8,7 +8,7 @@ use Clumsy\Assets\Support\Exceptions\UnknownAssetTypeException;
 
 class Container
 {
-    protected $object_sets = [
+    protected $objectSets = [
         'styles',
         'header',
         'footer',
@@ -152,7 +152,7 @@ class Container
 
     protected function arrayableSets()
     {
-        return array_keys(array_except($this->sets, $this->object_sets));
+        return array_keys(array_except($this->sets, $this->objectSets));
     }
 
     protected function isArrayable($set)

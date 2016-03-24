@@ -5,7 +5,6 @@ namespace Clumsy\Assets\Support\Types;
 use Closure;
 use Exception;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\File;
 
 class Asset
 {
@@ -108,11 +107,11 @@ class Asset
     {
         if ($this->isLocal() && $this->exists()) {
 
-            $content = File::get(public_path($this->getPath()));
+            $content = app('files')->get(public_path($this->getPath()));
 
-            $content_to_replace = $this->embeddedAssetReplace();
-            if ($content_to_replace) {
-                $content = preg_replace('/url\(\'?"?(?!(|\'|")http)(?!(|\'|")data)/', $content_to_replace, $content);
+            $contentToReplace = $this->embeddedAssetReplace();
+            if ($contentToReplace) {
+                $content = preg_replace('/url\(\'?"?(?!(|\'|")http)(?!(|\'|")data)/', $contentToReplace, $content);
             }
 
             return $content;
