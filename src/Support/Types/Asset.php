@@ -6,11 +6,10 @@ use Closure;
 use Exception;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
-use Clumsy\Assets\Facade as Loader;
 
 class Asset
 {
-    protected $replace_embedded_assets;
+    protected $replaceEmbeddedAssets;
 
     protected $path;
 
@@ -45,7 +44,7 @@ class Asset
 
     public function getPath()
     {
-        return Loader::processReplacements($this->path);
+        return app('clumsy.assets')->processReplacements($this->path);
     }
 
     public function setPath($path)
@@ -55,21 +54,21 @@ class Asset
 
     public function getReplaceEmbeddedAssets()
     {
-        return $this->replace_embedded_assets;
+        return $this->replaceEmbeddedAssets;
     }
 
     public function setReplaceEmbeddedAssets($replace)
     {
-        $this->replace_embedded_assets = $replace;
+        $this->replaceEmbeddedAssets = $replace;
     }
 
     protected function embeddedAssetReplace()
     {
-        if ($this->replace_embedded_assets instanceof Closure) {
-            return $this->replace_embedded_assets($this);
+        if ($this->replaceEmbeddedAssets instanceof Closure) {
+            return $this->replaceEmbeddedAssets($this);
         }
 
-        if (!$this->replace_embedded_assets) {
+        if (!$this->replaceEmbeddedAssets) {
             return false;
         }
 

@@ -68,14 +68,13 @@ class Container
     {
         $key = $asset['key'];
 
-        foreach (array_keys(array_get($this->sets, $set, [])) as $i => $p) {
+        foreach (array_keys(array_get($this->sets, $set, [])) as $p) {
             if (array_key_exists($key, array_get($this->sets, "{$set}.{$p}"))) {
                 // If asset is already in queue, either upgrade priority or ignore enqueue
-                if ($priority > $p) {
-                    unset($this->sets[$set][$p][$key]);
-                } else {
+                if ($priority <= $p) {
                     return;
                 }
+                unset($this->sets[$set][$p][$key]);
             }
         }
 
@@ -100,7 +99,7 @@ class Container
             }
 
             if ($clear && $set !== $current && $this->getSet($current)) {
-                foreach (array_keys($this->sets[$current]) as $i => $p) {
+                foreach (array_keys($this->sets[$current]) as $p) {
                     if (array_key_exists($asset, $this->sets[$current][$p])) {
                         unset($this->sets[$current][$p][$asset]);
                     }
@@ -179,8 +178,6 @@ class Container
 
     protected function clear()
     {
-        foreach (array_keys($this->sets) as $set) {
-            $this->sets = [];
-        }
+        $this->sets = [];
     }
 }

@@ -5,8 +5,6 @@ namespace Clumsy\Assets\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Event;
-use Clumsy\Assets\Facade as Asset;
 
 class PrintAssets
 {
@@ -25,16 +23,16 @@ class PrintAssets
             return false;
         }
 
-        foreach (array_keys(Asset::sets()) as $set) {
-            Event::listen($this->getEvent($set), function () use ($set) {
-                return Asset::dump($set);
+        foreach (array_keys(app('clumsy.assets')->sets()) as $set) {
+            app('events')->listen($this->getEvent($set), function () use ($set) {
+                return app('clumsy.assets')->dump($set);
             }, 25);
         }
 
         $header_content = array_flatten([
-            Event::fire('Print styles'),
-            Event::fire('Print objects'),
-            Event::fire('Print scripts'),
+            event('Print styles'),
+            event('Print objects'),
+            event('Print scripts'),
         ]);
         $header_content = implode(PHP_EOL, array_filter($header_content));
 
@@ -44,7 +42,7 @@ class PrintAssets
             $content = substr($content, 0, $pos) . $header_content . substr($content, $pos);
         }
 
-        $footer_content = Event::fire('Print footer scripts');
+        $footer_content = event('Print footer scripts');
         $footer_content = implode(PHP_EOL, array_filter($footer_content));
 
         $pos = strripos($content, '</body>');
