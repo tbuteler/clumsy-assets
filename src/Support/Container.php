@@ -18,8 +18,6 @@ class Container
 
     protected $assets = [];
 
-    protected $content = [];
-
     protected $unique = [];
 
     public function __construct(Application $app)
@@ -123,11 +121,11 @@ class Container
 
         foreach ($this->sets[$set] as $assets) {
             foreach ($assets as $assetAttributes) {
-                $this->content[] = $this->assetAsObject($assetAttributes);
+                $content[] = $this->assetAsObject($assetAttributes);
             }
         }
 
-        return implode(PHP_EOL, $this->content);
+        return implode(PHP_EOL, $content);
     }
 
     public function isUnique($id)
