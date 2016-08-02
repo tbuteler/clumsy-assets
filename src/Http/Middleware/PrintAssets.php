@@ -20,7 +20,7 @@ class PrintAssets
         $content = $response->getContent();
 
         if (!$content) {
-            return false;
+            return $response;
         }
 
         foreach (array_keys(app('clumsy.assets')->sets()) as $set) {
