@@ -41,6 +41,17 @@ class Container
         return $this->assets;
     }
 
+    public function setAssetKey($asset, $key, $value)
+    {
+        if (!isset($this->assets[$asset])) {
+            return false;
+        }
+
+        // Set directly on asset, because $asset could be a string with dots
+        // which might get confused with depth
+        return array_set($this->assets[$asset], $key, $value);
+    }
+
     public function assetAsObject($attributes)
     {
         $type = isset($attributes['type']) ? $attributes['type'] : $this->getDefaultAssetType($attributes['set']);
@@ -70,7 +81,8 @@ class Container
 
         foreach (array_keys(array_get($this->sets, $set, [])) as $p) {
             if (array_key_exists($key, array_get($this->sets, "{$set}.{$p}"))) {
-                // If asset is already in queue, either upgrade priority or ignore enqueue
+                // If asset is already in queue, either upgrade priority
+                // or ignore load
                 if ($priority <= $p) {
                     return;
                 }
@@ -90,7 +102,6 @@ class Container
     public function move($asset, $set, $clear = true)
     {
         if (isset($this->assets[$asset])) {
-
             $current = $this->assets[$asset]['set'];
 
             // Styles cannot be moved

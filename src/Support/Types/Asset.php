@@ -6,13 +6,13 @@ use Closure;
 use Exception;
 use Illuminate\Support\Facades\App;
 
-class Asset
+abstract class Asset
 {
     protected $replaceEmbeddedAssets;
 
     protected $path;
 
-    protected $v = null;
+    protected $version = null;
 
     public function __construct($attributes)
     {
@@ -24,9 +24,9 @@ class Asset
             $this->inline = $inline;
         }
 
-        if (!isset($attributes['elixir'])) {
-            $elixir = config('clumsy.asset-loader.elixir');
-            $this->elixir = $elixir;
+        if (!isset($attributes['hash'])) {
+            $hash = config('clumsy.asset-loader.hash');
+            $this->hash = $hash;
         }
 
         foreach ($attributes as $key => $value) {
@@ -41,14 +41,29 @@ class Asset
         }
     }
 
+    public function getRawPath()
+    {
+        return $this->path;
+    }
+
     public function getPath()
     {
-        return app('clumsy.assets')->processReplacements($this->path);
+        return app('clumsy.assets')->processReplacements($this);
     }
 
     public function setPath($path)
     {
         $this->path = $path;
+    }
+
+    public function getVersion()
+    {
+        return $this->version;
+    }
+
+    public function shouldReplace($placeholder)
+    {
+        return str_contains($this->path, app('clumsy.assets')->wrapReplacer($placeholder));
     }
 
     public function getReplaceEmbeddedAssets()
@@ -91,22 +106,30 @@ class Asset
     protected function pathWithVersion()
     {
         $path = $this->getPath();
-        if ($this->isLocal() && $this->elixir) {
+        if ($this->isLocal() && $this->hash) {
             try {
-                $path = elixir($path);
+                // Check Laravel's version and use Elixir or Mix accordingly
+                list($major, $minor) = array_map('intval', explode('.', app()->version()));
+                if ($major < 5) {
+                    throw new Exception('Unsupported Laravel version.');
+                }
+                $path = $minor < 4 ? elixir($path) : mix($path);
             } catch (Exception $e) {
                 $path = $this->getPath();
             }
         }
 
-        $suffix = !$this->inline && $this->v ? '?v=' . (string)$this->v : null;
+        $suffix = null;
+        if (!$this->inline && $this->version && !$this->shouldReplace('version')) {
+            $suffix = '?v='.(string)$this->version;
+        }
+
         return "{$path}{$suffix}";
     }
 
     protected function content()
     {
         if ($this->isLocal() && $this->exists()) {
-
             $content = app('files')->get(public_path($this->getPath()));
 
             $contentToReplace = $this->embeddedAssetReplace();

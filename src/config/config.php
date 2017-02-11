@@ -15,7 +15,7 @@ return [
      | Fail silently
      |--------------------------------------------------------------------------
      |
-     | Whether to throw an exception for assets which are enqueued but not
+     | Whether to throw an exception for assets which are loaded but not
      | found. By default, it will throw exceptions for apps in debug mode.
      |
      */
@@ -72,21 +72,21 @@ return [
      | Should the asset loader attempt to load the versioned path of the asset,
      | with the hash created by Laravel's Elixir? This can safely be true for
      | all assets, even if they don't have proper revisions -- the loader falls
-     | back to the "raw" path if no elixir version is available.
+     | back to the "raw" path if no elixir/mix version is available.
      |
-     | This setting can be overridden by each individual asset's "elixir"
+     | This setting can be overridden by each individual asset's "hash"
      | property.
      |
      */
 
-    'elixir' => false,
+    'hash' => false,
 
     /*
      |--------------------------------------------------------------------------
      | Default web font provider
      |--------------------------------------------------------------------------
      |
-     | When enqueing fonts, which provider should the loader use by default.
+     | When loading fonts, which provider should the loader use by default.
      |
      | Supported: "google"
      |

@@ -3,9 +3,10 @@
 namespace Clumsy\Assets;
 
 use Closure;
-use Illuminate\Foundation\Application;
 use Clumsy\Assets\Support\Container;
 use Clumsy\Assets\Support\Exceptions\UnknownAssetException;
+use Clumsy\Assets\Support\Types\Asset as SingleAsset;
+use Illuminate\Foundation\Application;
 
 class Asset
 {
@@ -19,9 +20,6 @@ class Asset
     {
         $this->app = $app;
         $this->container = $container;
-
-        $this->replacer('locale', [$this, 'localePathReplacer']);
-        $this->replacer('environment', [$this, 'environmentPathReplacer']);
     }
 
     protected function unknownAsset($assetName)
@@ -32,6 +30,16 @@ class Asset
         }
 
         throw new UnknownAssetException("Unknown asset \"$assetName\"");
+    }
+
+    protected function parseAsset($asset)
+    {
+        if (str_contains($asset, '@')) {
+            list($asset, $version) = explode('@', $asset);
+            $this->updateRegistered($asset, 'version', $version);
+        }
+
+        return $asset;
     }
 
     public function sets()
@@ -94,28 +102,52 @@ class Asset
         }
     }
 
+    public function getRegistered($asset)
+    {
+        return array_get($this->all(), $asset);
+    }
+
+    public function updateRegistered($asset, $key, $value)
+    {
+        return $this->container->setAssetKey($asset, $key, $value);
+    }
+
+    public function isRegistered($asset)
+    {
+        return !is_null($this->getRegistered($asset));
+    }
+
+    public function getRequirements($asset)
+    {
+        return (array)array_get($this->getRegistered($asset), 'requires');
+    }
+
+    public function hasRequirements($asset)
+    {
+        return count($this->getRequirements($asset)) > 0;
+    }
+
     public function load($assets, $priority = 25)
     {
-        $registered = $this->all();
-
         foreach ((array)$assets as $asset) {
+            $asset = $this->parseAsset($asset);
 
-            if (!isset($registered[$asset])) {
+            if (!$this->isRegistered($asset)) {
                 return $this->unknownAsset($asset);
             }
 
-            if (isset($registered[$asset]['req'])) {
-                foreach ((array)$registered[$asset]['req'] as $requirement) {
-                    // If a 'header' asset has requirements, make sure they are loaded
-                    // in the header as well, regardless of original set
-                    if ($registered[$asset]['set'] === 'header') {
-                        $this->move($requirement, $registered[$asset]['set']);
-                    }
-                    $this->load($requirement, $priority);
+            $set = array_get($this->getRegistered($asset), 'set');
+
+            foreach ($this->getRequirements($asset) as $requirement) {
+                // If a 'header' asset has requirements, make sure they are loaded
+                // in the header as well, regardless of original set
+                if ($set === 'header') {
+                    $this->move($requirement, $set);
                 }
+                $this->load($requirement, $priority);
             }
 
-            $this->on($registered[$asset]['set'], array_merge(['key' => $asset], $registered[$asset]), $priority);
+            $this->on($set, array_merge(['key' => $asset], $this->getRegistered($asset)), $priority);
         }
     }
 
@@ -193,60 +225,26 @@ class Asset
         $this->replacerDelimiterRight = $right;
     }
 
+    public function wrapReplacer($placeholder)
+    {
+        return "{$this->replacerDelimiterLeft}{$placeholder}{$this->replacerDelimiterRight}";
+    }
+
     public function getReplacers()
     {
         return $this->replacers;
     }
 
-    public function processReplacements($string)
+    public function processReplacements(SingleAsset $asset)
     {
+        $path = $asset->getRawPath();
         foreach ($this->replacers as $placeholder => $replacement) {
-            $placeholder = "{$this->replacerDelimiterLeft}{$placeholder}{$this->replacerDelimiterRight}";
-            if (str_contains($string, $placeholder)) {
-                $replacement = is_callable($replacement) ? call_user_func($replacement) : $replacement;
-                $string = str_replace($placeholder, $replacement, $string);
+            if ($asset->shouldReplace($placeholder)) {
+                $replacement = is_callable($replacement) ? call_user_func($replacement, $asset) : $replacement;
+                $path = str_replace($this->wrapReplacer($placeholder), $replacement, $path);
             }
         }
 
-        return $string;
-    }
-
-    public function localePathReplacer()
-    {
-        return $this->app->getLocale();
-    }
-
-    public function environmentPathReplacer()
-    {
-        return $this->app->environment();
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Deprecated aliases
-    |--------------------------------------------------------------------------
-    |
-    | To be removed on 1.0
-    |
-    */
-
-    public function enqueue($assets, $priority = 25)
-    {
-        return $this->load($assets, $priority);
-    }
-
-    public function enqueueNew($set, $key, array $attributes = [], $priority = 25)
-    {
-        return $this->loadNew($set, $key, $attributes, $priority);
-    }
-
-    public function once($id, Closure $closure)
-    {
-        return $this->unique($id, $closure);
-    }
-
-    public function font($fonts, $options = '')
-    {
-        return $this->fonts($fonts, $options);
+        return $path;
     }
 }

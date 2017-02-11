@@ -2,6 +2,9 @@
 
 namespace Clumsy\Assets;
 
+use Clumsy\Assets\Asset;
+use Clumsy\Assets\Http\Middleware\PrintAssets;
+use Clumsy\Assets\Support\Types\Asset as SingleAsset;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,7 +27,19 @@ class AssetsServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/config/assets.php', 'clumsy.assets.app');
         $this->mergeConfigFrom(__DIR__.'/config/config.php', 'clumsy.asset-loader');
 
-        $this->app['clumsy.assets'] = $this->app->make('Clumsy\Assets\Asset');
+        $this->app['clumsy.assets'] = $this->app->make(Asset::class);
+
+        $this->app['clumsy.assets']->replacer('locale', function () {
+            return $this->app->getLocale();
+        });
+
+        $this->app['clumsy.assets']->replacer('environment', function () {
+            return $this->app->environment();
+        });
+
+        $this->app['clumsy.assets']->replacer('version', function (SingleAsset $asset) {
+            return $asset->getVersion();
+        });
     }
 
     /**
@@ -35,7 +50,7 @@ class AssetsServiceProvider extends ServiceProvider
     public function boot(Kernel $kernel)
     {
         if (!$this->app->runningInConsole()) {
-            $kernel->pushMiddleware('Clumsy\Assets\Http\Middleware\PrintAssets');
+            $kernel->pushMiddleware(PrintAssets::class);
         }
 
         $this->publishes([
